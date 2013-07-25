@@ -8,11 +8,21 @@ class MoviesController < ApplicationController
 
   def index
     @sorted_by_title, @sorted_by_release_date = false
-    if not params[:sort] == nil
-      @movies = Movie.order(params[:sort] + " ASC").all
-      instance_variable_set "@sorted_by_#{params[:sort]}", true
+    @all_ratings = Movie.get_distinct_ratings.sort!
+    
+    
+    if params[:ratings] == nil
+      ratings = @all_ratings
     else
-      @movies = Movie.all
+      ratings = params[:ratings].keys
+    end    
+    
+    if params[:sort_by] == nil
+      @movies = Movie.find :all, :conditions => { :rating => ratings }
+    else
+      @movies = Movie.order(params[:sort_by] + " ASC").
+        find :all, :conditions => { :rating => ratings }
+      instance_variable_set "@sorted_by_#{params[:sort_by]}", true
     end
   end
 
