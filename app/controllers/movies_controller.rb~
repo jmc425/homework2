@@ -7,9 +7,10 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @title_hilite, @release_date_hilite = nil
+    @sorted_by_title, @sorted_by_release_date = false
     if not params[:sort] == nil
       @movies = Movie.order(params[:sort] + " ASC").all
+      instance_variable_set "@sorted_by_#{params[:sort]}", val
     else
       @movies = Movie.all
     end
