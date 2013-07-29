@@ -1,6 +1,6 @@
 -#  This file is app/views/movies/index.html.haml
 %h1 All Movies
-= form_tag movies_path, :method => :get do
+= form_tag movies_path, :method => :get, :id => "ratings_form" do
   Include:
   = hidden_field_tag "sort_by_title", "true" if @sorted_by_title
   = hidden_field_tag "sort_by_release_date", "true" if @sorted_by_release_date
