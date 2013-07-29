@@ -6,28 +6,42 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
-  def index
+  def index   
+    if params[:ratings] == nil and params[:sort_by] == nil
+      flash.keep
+      redirect_to_movies_path if session[:ratings] != nil and session[:sort_by] != nil
+      redirect_to_movies_path(session[:ratings], nil) if session[:ratings] != nil and 
+        session[:sort_by] == nil
+      redirect_to_movies_path(@all_ratings) if session[:ratings] == nil and session[:sort_by] != nil
+      redirect_to_movies_path(@all_ratings, nil) if session[:ratings] == nil and 
+        session[:sort_by] == nil
+    elsif params[:ratings] == nil
+      redirect_to_movies_path(session[:ratings], params[:sort_by]) if session[:ratings] != nil
+      redirect_to_movies_path(@all_ratings, params[:sort_by])
+    elsif params[:sort_by] == nil
+      redirect_to_movies_path(params[:ratings]) if session[:sort_by] != nil
+    end
+    
     @all_ratings = Movie.get_distinct_ratings.sort!
+    @ratings = params[:ratings] if params[:ratings].is_a? Array
+    @ratings = params[:ratings].keys if params[:ratings].is_a? Hash
+    @ratings = @all_ratings if @ratings == nil or @ratings.empty?
     
-    if params[:ratings] != nil
-      @selected_ratings = params[:ratings].keys
-    elsif params[:selected_ratings] != nil
-      @selected_ratings = params[:selected_ratings]
-    else
-      @selected_ratings = @all_ratings
+    if params[:sort_by] == nil
+      @movies = Movie.find :all, 
+        :conditions => { :rating => @ratings }
+    elsif Movie.column_names.include? params[:sort_by]
+      @movies = Movie.order(params[:sort_by] + " ASC").
+        find :all, :conditions => { :rating => @ratings }
+      instance_variable_set "@sorted_by_#{params[:sort_by]}", true
     end
     
-    if params[:sort_by_title] == "true"
-      @movies = Movie.order("title ASC").
-        find :all, :conditions => { :rating => @selected_ratings }
-      @sorted_by_title = true
-    elsif params[:sort_by_release_date] == "true"
-      @movies = Movie.order("release_date ASC").
-        find :all, :conditions => { :rating => @selected_ratings }
-      @sorted_by_release_date = true
-    else
-      @movies = Movie.find :all, :conditions => { :rating => @selected_ratings }
-    end
+    session[:ratings] = @ratings
+    session[:sort_by] = params[:sort_by]
+  end
+  
+  def redirect_to_movies_path(ratings=session[:ratings], sort_by=session[:sort_by])
+    redirect_to movies_path(Hash[:ratings => ratings, :sort_by => sort_by])
   end
 
   def new
