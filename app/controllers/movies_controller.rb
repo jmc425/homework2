@@ -8,7 +8,6 @@ class MoviesController < ApplicationController
 
   def index   
     if params[:ratings] == nil and params[:sort_by] == nil
-      flash.keep
       redirect_to_movies_path if session[:ratings] != nil and session[:sort_by] != nil
       redirect_to_movies_path(session[:ratings], nil) if session[:ratings] != nil and 
         session[:sort_by] == nil
@@ -41,6 +40,7 @@ class MoviesController < ApplicationController
   end
   
   def redirect_to_movies_path(ratings=session[:ratings], sort_by=session[:sort_by])
+    flash.keep
     redirect_to movies_path(Hash[:ratings => ratings, :sort_by => sort_by])
   end
 
